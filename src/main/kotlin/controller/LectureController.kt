@@ -26,5 +26,8 @@ class LectureController (
             quantity = createOrderRequest.quantity,
             price = createOrderRequest.price,
         )
+
+        orderEventPublisher.publishOrderEvent(orderEvent)
+        return ResponseEntity.ok("Order Created: ${orderEvent.orderId}")
     }
 }
