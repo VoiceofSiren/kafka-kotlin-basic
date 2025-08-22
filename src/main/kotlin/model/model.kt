@@ -25,7 +25,7 @@ data class CreateOrderRequest(
 
 // -- stream --
 
-data class OrderCountComparisonStatus (
+data class OrderCountComparisonStats (
     val currentPeriod: PeriodStats,
     val previousPeriod: PeriodStats,
     val changeCount: Long,
