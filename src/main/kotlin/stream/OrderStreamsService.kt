@@ -19,6 +19,7 @@ class OrderStreamsService(
     // StreamsBuilderFactoryBean
     //  - Kafka Stream 인스턴스를 관리하는 Bean
     //  - Kafka Stream의 Window 저장소를 활용하여 시간 기반의 데이터를 조회하는 데 사용됨.
+    //  - Main.kt의 @EnableKafkaStreams를 통해 Bean 생성
     private val factory: StreamsBuilderFactoryBean
 ) {
 
