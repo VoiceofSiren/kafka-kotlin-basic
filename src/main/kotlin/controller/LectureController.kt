@@ -7,7 +7,9 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.math.BigDecimal
 import java.util.UUID
 
 @RestController
@@ -29,5 +31,15 @@ class LectureController (
 
         orderEventPublisher.publishOrderEvent(orderEvent)
         return ResponseEntity.ok("Order Created: ${orderEvent.orderId}")
+    }
+
+    @PostMapping("/avro/publish")
+    fun createOrderAvro(
+        @RequestParam(defaultValue = "CUST-123") customerId: String,
+        @RequestParam(defaultValue = "5") quantity: Int,
+        @RequestParam(defaultValue = "99.99") price: BigDecimal,
+    ): Map<String, Any> {
+
+        return emptyMap()
     }
 }
