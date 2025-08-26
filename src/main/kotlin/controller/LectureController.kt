@@ -1,5 +1,6 @@
 package org.ktor_lecture.controller
 
+import org.ktor_lecture.avro.AvroOrderEventProducer
 import org.ktor_lecture.basic.OrderEventPublisher
 import org.ktor_lecture.model.CreateOrderRequest
 import org.ktor_lecture.model.OrderEvent
@@ -16,6 +17,7 @@ import java.util.UUID
 @RequestMapping("/api/lecture")
 class LectureController (
     private val orderEventPublisher: OrderEventPublisher,
+    private val avroEventPublisher: AvroOrderEventProducer,
 ) {
 
     @PostMapping
@@ -40,6 +42,20 @@ class LectureController (
         @RequestParam(defaultValue = "99.99") price: BigDecimal,
     ): Map<String, Any> {
 
-        return emptyMap()
+        val orderId = UUID.randomUUID().toString()
+
+        avroEventPublisher.publishOrderEvent(
+            orderId = orderId,
+            customerId = customerId,
+            quantity = quantity,
+            price = price,
+        )
+
+        return mapOf(
+            "success" to true,
+            "orderId" to orderId,
+            "message" to "Avro order event published successfully"
+        )
     }
+
 }
