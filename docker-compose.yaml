@@ -25,20 +25,42 @@ services:
     networks:
       - kafka-network
     depends_on:
+      # zookeeper가 정상적으로 동작해야 kafka도 실행될 수 있도록 설정
       - zookeeper
     environment:
+      # 한 개의 브로커만 사용
+      # 브로커 ID는 클러스터 환경에서 고유한 식별자로 활용
       KAFKA_BROKER_ID: 1
+      # zookeeper 연결을 위한 설정
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # PLAINTEXT와 PLAINTEXT를 매핑: 리스너는 암호화 없는 일반 통신
+      # PLAINTEXT_HOST와 PLAINTEXT를 매핑: 리스너는 암호화 없는 일반 통신
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      # 클라이언트에게 알려주는 브로커의 접근 주소를 설정
+      # 컨테이너 간의 통신을 위해 29092 포트를 사용
+      # PLAINTEXT_HOST에 접근하기 위한 localhost:9092 설정
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      # 브로커가 실제로 바인딩하는 주소
+      # 29092 포트: 모든 인터페이스에서 29092 포트와 수신하기 위해 필요
+      # 9092 포트: 호스트에서 접근하기 위해 필요
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      # 브로커 간 통신에 사용한 리스너 이름을 지정
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      # 컨슈머 오프셋 토픽의 복제 개수
+      # 단일 브로커 환경이기 때문에 1로 설정
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      # 트랜잭션 상태 로그의 최소 동기화 레플리카 개수
+      # 단일 브로커 환경이기 때문에 1로 설정
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      # 트랜잭션 상태 로그의 복제 개수
+      # 단일 브로커 환경이기 때문에 1로 설정
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
     ports:
       - "9092:9092"
 
+  # kafka에서 디버깅하는 UI 화면을 제공
+  # 웹 기반의 kafka 관리 도구
+  # 브라우저에서 kafka 클러스터 모니터링을 지원
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
@@ -51,11 +73,12 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
       KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
-      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: debezium
-      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect:8083
+#      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: debezium
+#      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect:8083
     ports:
       - "9090:8080"
 
+  # Avro schema 저장소
   schema-registry:
     image: confluentinc/cp-schema-registry:7.4.0
     container_name: schema-registry
@@ -69,41 +92,41 @@ services:
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
     ports:
       - "8081:8081"
-
-  kafka-connect:
-    image: debezium/connect:2.4
-    container_name: kafka-connect
-    networks:
-      - kafka-network
-    depends_on:
-      - kafka
-      - postgres
-    environment:
-      BOOTSTRAP_SERVERS: kafka:29092
-      GROUP_ID: 1
-      CONFIG_STORAGE_TOPIC: my_connect_configs
-      OFFSET_STORAGE_TOPIC: my_connect_offsets
-      STATUS_STORAGE_TOPIC: my_connect_statuses
-      CONFIG_STORAGE_REPLICATION_FACTOR: 1
-      OFFSET_STORAGE_REPLICATION_FACTOR: 1
-      STATUS_STORAGE_REPLICATION_FACTOR: 1
-    ports:
-      - "8083:8083"
-
-  postgres:
-    image: postgres:15-alpine
-    container_name: postgres
-    networks:
-      - kafka-network
-    environment:
-      POSTGRES_DB: orderdb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    command: [ "postgres", "-c", "wal_level=logical", "-c", "max_wal_senders=10", "-c", "max_replication_slots=10" ]
-
-volumes:
-  postgres_data:
+#
+#  kafka-connect:
+#    image: debezium/connect:2.4
+#    container_name: kafka-connect
+#    networks:
+#      - kafka-network
+#    depends_on:
+#      - kafka
+#      - postgres
+#    environment:
+#      BOOTSTRAP_SERVERS: kafka:29092
+#      GROUP_ID: 1
+#      CONFIG_STORAGE_TOPIC: my_connect_configs
+#      OFFSET_STORAGE_TOPIC: my_connect_offsets
+#      STATUS_STORAGE_TOPIC: my_connect_statuses
+#      CONFIG_STORAGE_REPLICATION_FACTOR: 1
+#      OFFSET_STORAGE_REPLICATION_FACTOR: 1
+#      STATUS_STORAGE_REPLICATION_FACTOR: 1
+#    ports:
+#      - "8083:8083"
+#
+#  postgres:
+#    image: postgres:15-alpine
+#    container_name: postgres
+#    networks:
+#      - kafka-network
+#    environment:
+#      POSTGRES_DB: orderdb
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: password
+#    ports:
+#      - "5432:5432"
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#    command: [ "postgres", "-c", "wal_level=logical", "-c", "max_wal_senders=10", "-c", "max_replication_slots=10" ]
+#
+#volumes:
+#  postgres_data:
