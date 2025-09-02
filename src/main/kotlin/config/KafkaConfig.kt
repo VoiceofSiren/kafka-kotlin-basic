@@ -1,6 +1,6 @@
 package org.ktor_lecture.config
 
-import com.fasterxml.jackson.databind.deser.std.StringDeserializer
+
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
@@ -8,6 +8,7 @@ import io.confluent.kafka.serializers.KafkaAvroSerializer
 import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.ktor_lecture.model.OrderEvent
 import org.springframework.beans.factory.annotation.Value
@@ -100,7 +101,7 @@ class KafkaConfig {
         val props = mapOf(
             ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
             ConsumerConfig.GROUP_ID_CONFIG to "real-order-cdc-processor",
-            // 컨슈머 그룹이 특정 파티션에서 유효한 오프셋을 찾지 못했을 때, 어느 위치에서부터 읽기 시작할지를 결정하는 설정
+            // 컨슈머 그룹이 특정 파티션에서 유효한 오프셋을 찾지 못했을 때, 어느 위치에서부터 읽기 시작할지를 결정하는설정
             // earliest: 해당 파티션의 처음 (최소 Offset)부터 읽기 시작
             //           Commit된 Offset이 없다면 해당 토픽의 처음 메시지부터 소비
             ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
@@ -136,7 +137,7 @@ class KafkaConfig {
 
     @Bean
     // Avro 관련 설정
-    fun avroKafkaListenerConsumerFactory(): ConcurrentKafkaListenerContainerFactory<String, GenericRecord> {
+    fun avroKafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, GenericRecord> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, GenericRecord>()
         factory.consumerFactory = avroConsumerFactory()
         return factory
